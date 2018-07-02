@@ -22,7 +22,7 @@ initMap = () => {
         scrollWheelZoom: false
       });
       L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.jpg70?access_token={mapboxToken}', {
-        mapboxToken: 'pk.eyJ1Ijoic2hyZXlhbnNodXNoZWthciIsImEiOiJjamloZmNoYmQwMTFxM3BvMWIxNmc2am5pIn0.DhpuBdkNOOySbr2XcGRi7Q',
+        mapboxToken: '<YOUR API HERE>',
         maxZoom: 18,
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
           '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
@@ -82,10 +82,12 @@ fetchRestaurantFromURL = (callback) => {
 fillRestaurantHTML = (restaurant = self.restaurant) => {
   const name = document.getElementById('restaurant-name');
   name.tabIndex=0;
+  name.setAttribute('aria-label', `${restaurant.name} restaurant`);
   name.innerHTML = restaurant.name;
 
   const address = document.getElementById('restaurant-address');
   address.tabIndex=0;
+  address.setAttribute('aria-label', `address`);
   address.innerHTML = restaurant.address;
 
   const image = document.getElementById('restaurant-img');
@@ -95,6 +97,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
 
   const cuisine = document.getElementById('restaurant-cuisine');
   cuisine.tabIndex=0;
+  cuisine.setAttribute('aria-label', `restaurant cuisine`);
   cuisine.innerHTML = restaurant.cuisine_type;
 
   // fill operating hours
@@ -156,6 +159,7 @@ createReviewHTML = (review) => {
   const name = document.createElement('p');
   name.innerHTML = review.name;
   name.tabIndex=0;
+  name.setAttribute('aria-label', `Customer Name`);
   li.appendChild(name);
 
   const date = document.createElement('p');
@@ -165,6 +169,7 @@ createReviewHTML = (review) => {
   const rating = document.createElement('p');
   rating.innerHTML = `Rating: ${review.rating}`;
   rating.tabIndex=0;
+  rating.setAttribute('aria-label', `Customer Review Rating`);
   li.appendChild(rating);
 
   const comments = document.createElement('p');

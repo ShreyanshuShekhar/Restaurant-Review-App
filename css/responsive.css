@@ -62,7 +62,7 @@
 	}
 
 	#restaurants-list .restaurant-img {
-		height: 160px;
+		height: auto;
 	}
 
 	#restaurants-list li h1 {
@@ -180,11 +180,11 @@
 	}
 
 	#restaurants-list .restaurant-img {
-		height: 220px;
+		height: auto;
 	}
 
 	#restaurants-list li h1 {
-		font-size: 18pt;
+		font-size: 16pt;
 		margin: 10px 0 10px;
 	}
 
@@ -290,7 +290,7 @@
 
 	#restaurants-list .restaurant-img {
 		width: 100%;
-		height: 260px;
+		height: auto;
 	}
 
 	#restaurants-list li {
@@ -401,6 +401,13 @@
     width: 100%;
   }
 
+	#restaurants-list li h1{
+		font-size: 17pt;
+	}
+
+	#restaurants-list li p {
+    font-size: 1.4em;
+	}
 
   /* Restaurant Details */
   .inside #map-container {

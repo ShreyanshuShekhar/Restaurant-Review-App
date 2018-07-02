@@ -1,4 +1,4 @@
-var staticCacheName = 'restaurant-review-v5';
+let staticCacheName = 'restaurant-review-v3';
 
 // TODO: install new cache
 self.addEventListener('install', function(event) {
@@ -7,7 +7,7 @@ self.addEventListener('install', function(event) {
       return cache.addAll([
       '/',
       'index.html',
-      '/restaurant.html',
+      'restaurant.html',
       'css/styles.css',
       'css/styles_index.css',
       'css/styles_restaurant.css',
@@ -55,7 +55,7 @@ self.addEventListener('fetch', function(event) {
     caches.match(event.request).then(function(response) {
       return response || fetch(event.request);
     }).catch(function() {
-      return ('fetch failed');
+      return caches.match('restaurant.html');
     })
   );
 });
