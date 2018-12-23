@@ -40,6 +40,8 @@ fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
   });
 }
 
+
+
 /**
  * Fetch all cuisines and set their HTML.
  */
@@ -78,7 +80,7 @@ initMap = () => {
         scrollWheelZoom: false
       });
   L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.jpg70?access_token={mapboxToken}', {
-    mapboxToken: '<YOUR API HERE>',
+    mapboxToken: 'pk.eyJ1Ijoic2hyZXlhbnNodXNoZWthciIsImEiOiJjamloZmNoYmQwMTFxM3BvMWIxNmc2am5pIn0.DhpuBdkNOOySbr2XcGRi7Q',
     maxZoom: 18,
     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
       '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
@@ -163,6 +165,28 @@ createRestaurantHTML = (restaurant) => {
   image.setAttribute('alt', `An image of ${restaurant.name}`);
   image.src = DBHelper.imageUrlForRestaurant(restaurant);
   li.append(image);
+
+  const favorite = document.createElement('button');
+  favorite.className = 'fav-control';
+  favorite.setAttribute('alt', 'favorite marker');
+  favorite.setAttribute('aria-label', 'favorite');
+  if ((/true/i).test(restaurant.is_favorite)) {
+    favorite.classList.add('active');
+    favorite.setAttribute('aria-pressed', 'true');
+    favorite.innerHTML = `Remove ${restaurant.name} as a favorite`;
+    favorite.title = `Remove ${restaurant.name} as a favorite`;
+  } else {
+    favorite.setAttribute('aria-pressed', 'false');
+    favorite.innerHTML = `Add ${restaurant.name} as a favorite`;
+    favorite.title = `Add ${restaurant.name} as a favorite`;
+  }
+
+
+  favorite.onclick = () => {
+    DBHelper.favoriteClickHandler(restaurant.id, !restaurant.is_favorite, restaurant);
+    favorite.classList.toggle('active');
+  }
+  li.append(favorite);
 
   const name = document.createElement('h1');
   name.innerHTML = restaurant.name;

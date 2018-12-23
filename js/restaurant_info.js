@@ -22,7 +22,7 @@ initMap = () => {
         scrollWheelZoom: false
       });
       L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.jpg70?access_token={mapboxToken}', {
-        mapboxToken: '<YOUR API HERE>',
+        mapboxToken: 'pk.eyJ1Ijoic2hyZXlhbnNodXNoZWthciIsImEiOiJjamloZmNoYmQwMTFxM3BvMWIxNmc2am5pIn0.DhpuBdkNOOySbr2XcGRi7Q',
         maxZoom: 18,
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
           '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
@@ -85,6 +85,26 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   name.setAttribute('aria-label', `${restaurant.name} restaurant`);
   name.innerHTML = restaurant.name;
 
+  const favorite = document.getElementById('restaurant-fav');
+  favorite.className = 'fav-control';
+  favorite.setAttribute('alt', 'favorite marker');
+  favorite.setAttribute('aria-label', 'favorite');
+  if ((/true/i).test(restaurant.is_favorite)) {
+    favorite.classList.add('active');
+    favorite.setAttribute('aria-pressed', 'true');
+    favorite.innerHTML = `Remove ${restaurant.name} as a favorite`;
+    favorite.title = `Remove ${restaurant.name} as a favorite`;
+  } else {
+    favorite.setAttribute('aria-pressed', 'false');
+    favorite.innerHTML = `Add ${restaurant.name} as a favorite`;
+    favorite.title = `Add ${restaurant.name} as a favorite`;
+  }
+
+  favorite.onclick = () => {
+    DBHelper.favoriteClickHandler(restaurant.id, !restaurant.is_favorite, restaurant);
+    favorite.classList.toggle('active');
+  }
+
   const address = document.getElementById('restaurant-address');
   address.tabIndex=0;
   address.setAttribute('aria-label', `address`);
@@ -104,8 +124,9 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   if (restaurant.operating_hours) {
     fillRestaurantHoursHTML();
   }
+
   // fill reviews
-  fillReviewsHTML();
+  fillReviewsHTML(restaurant.id);
 }
 
 /**
@@ -126,57 +147,6 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
 
     hours.appendChild(row);
   }
-}
-
-/**
- * Create all reviews HTML and add them to the webpage.
- */
-fillReviewsHTML = (reviews = self.restaurant.reviews) => {
-  const container = document.getElementById('reviews-container');
-  const title = document.createElement('h2');
-  title.innerHTML = 'Reviews';
-  container.appendChild(title);
-
-  if (!reviews) {
-    const noReviews = document.createElement('p');
-    noReviews.innerHTML = 'No reviews yet!';
-    container.appendChild(noReviews);
-    return;
-  }
-  const ul = document.getElementById('reviews-list');
-  reviews.forEach(review => {
-    ul.appendChild(createReviewHTML(review));
-  });
-  container.appendChild(ul);
-}
-
-/**
- * Create review HTML and add it to the webpage.
- */
-createReviewHTML = (review) => {
-  const li = document.createElement('li');
-
-  const name = document.createElement('p');
-  name.innerHTML = review.name;
-  name.tabIndex=0;
-  name.setAttribute('aria-label', `Customer Name`);
-  li.appendChild(name);
-
-  const date = document.createElement('p');
-  date.innerHTML = review.date;
-  li.appendChild(date);
-
-  const rating = document.createElement('p');
-  rating.innerHTML = `Rating: ${review.rating}`;
-  rating.tabIndex=0;
-  rating.setAttribute('aria-label', `Customer Review Rating`);
-  li.appendChild(rating);
-
-  const comments = document.createElement('p');
-  comments.innerHTML = review.comments;
-  li.appendChild(comments);
-
-  return li;
 }
 
 /**
@@ -203,4 +173,175 @@ getParameterByName = (name, url) => {
   if (!results[2])
     return '';
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
+
+
+/**
+ * Create all reviews HTML and add them to the webpage.
+ */
+fillReviewsHTML = id => {
+  DBHelper.fetchRestaurantReviewsById(id, (reviews, error) => {
+    self.restaurant.reviews = reviews;
+
+  if (error) return;
+
+  const header = document.getElementById('reviews-header');
+
+  const container = document.getElementById('reviews-container');
+  const title = document.createElement('h2');
+  title.innerHTML = 'Reviews';
+  container.appendChild(title);
+
+
+  if (!reviews) {
+    const noReviews = document.createElement('p');
+    noReviews.innerHTML = 'No reviews yet!';
+    container.appendChild(noReviews);
+    return;
+  }
+  const ul = document.getElementById('reviews-list');
+  reviews.forEach(review => {
+    ul.appendChild(createReviewHTML(review));
+  });
+  container.appendChild(ul);
+});
+}
+
+/**
+ * Create review HTML and add it to the webpage.
+ */
+createReviewHTML = (review) => {
+  const li = document.createElement('li');
+
+  const createdAt = document.createElement('p');
+  createdAt.classList.add('createdAt');
+  const createdDate = new Date(review.createdAt).toLocaleDateString();
+  createdAt.innerHTML = `Added:<strong>${createdDate}</strong>`;
+  li.appendChild(createdAt);
+
+  const updatedAt = document.createElement('p');
+  const updatedDate = new Date(review.updatedAt).toLocaleDateString();
+  updatedAt.innerHTML = `Updated:<strong>${updatedDate}</strong>`;
+  updatedAt.classList.add('updatedAt');
+  li.appendChild(updatedAt);
+
+  const name = document.createElement('p');
+  name.innerHTML = review.name;
+  name.tabIndex=0;
+  name.setAttribute('aria-label', `Customer Name`);
+  li.appendChild(name);
+
+  const date = document.createElement('p');
+  date.className = 'review-date'
+  const millis = Date.now() - review.updatedAt
+  const time = Math.floor(millis / 1000)
+  var mins = Math.floor(time / 60)
+  var hrs = Math.floor(mins / 60)
+  var days = Math.floor(hrs / 24)
+  var months = Math.floor(days / 30)
+  if (time === 0) date.innerHTML = 'Updated Recently'
+  else if (months > 0) date.innerHTML = `Updated ${months} months ago`
+  else if (days > 0) date.innerHTML = `Updated ${days} days ago`
+  else if (hrs > 0) date.innerHTML = `Updated ${hrs} hours ago`
+  else if (mins > 0) date.innerHTML = `Updated ${mins} mins ago`
+  else date.innerHTML = `Updated ${time} seconds ago`
+  li.appendChild(date);
+
+  const rating = document.createElement('p')
+  rating.className = 'review-rating'
+  rating.innerHTML = `Ratng:<strong>${review.rating}<strong>`
+  const icon = document.createElement('img')
+  icon.setAttribute('src', '/icons/star.png')
+  icon.setAttribute('width', '15em')
+  icon.setAttribute('height', '15em')
+  icon.setAttribute('alt', 'star icon')
+  rating.appendChild(icon)
+  li.appendChild(rating)
+
+  const comments = document.createElement('p');
+  comments.innerHTML = review.comments;
+  li.appendChild(comments);
+
+  return li;
+}
+
+
+document.getElementById('submit-review-btn').addEventListener('click', evt => {
+  // console.log('evt', evt.target)
+  const name = document.getElementById('reviewer-name')
+  const comment = document.getElementById('reviewer-comment')
+  if (name.value == '' || comment.value == '' || rating == -1) {
+    alert('Please fill all the fields')
+    return
+  }
+  // if none of the fields are empty
+DBHelper.createRestaurantReview(
+  name.value,
+  comment.value,
+  rating,
+  self.restaurant.id,
+  (resp, err) => {
+    if (err) {
+      // console.log('Submit Review Failed')
+      return
+    }
+    // reset the form
+    name.value = ''
+    comment.value = ''
+    for (var i = 0; i < stars.length; i++) {
+      if (stars[i].classList.contains('star-fill')) {
+        stars[i].classList.remove('star-fill')
+      }
+    }
+  }
+)
+// disable the button , to disallow multiple clicks
+evt.target.disabled = true
+evt.target.style.cursor = 'not-allowed'
+// console.log('location', location)
+//location.reload();
+});
+
+
+const stars = document.getElementsByClassName('star')
+var rating = -1
+for (var i = 0; i < stars.length; i++) {
+  stars[i].addEventListener('click', function (evt) {
+    // console.log(evt.target.id)
+    rating = evt.target.id;
+    getRating(rating);
+  });
+}
+
+/**
+ * Get Star Ratings
+ */
+function getRating (i) {
+  var reviewText = document.getElementById('review-type')
+  switch (i) {
+    case '0':
+      reviewText.innerHTML = 'Very Bad'
+      break
+    case '1':
+      reviewText.innerHTML = 'Bad'
+      break
+    case '2':
+      reviewText.innerHTML = 'Good'
+      break
+    case '3':
+      reviewText.innerHTML = 'Very Good'
+      break
+    case '4':
+      reviewText.innerHTML = 'Excellent'
+      break
+  }
+  for (var k = 0; k < stars.length; k++) {
+    var elem = stars[k]
+    var exists = elem.classList.contains('star-fill')
+    if (k <= i && !exists) elem.classList.add('star-fill')
+    else if (k > i && exists) {
+      elem.classList.remove('star-fill')
+    }
+  }
 }
